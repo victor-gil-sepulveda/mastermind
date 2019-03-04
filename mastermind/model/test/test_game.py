@@ -8,15 +8,16 @@ class TestSerialDevices(unittest.TestCase):
     def test_get_feedback(self):
 
         code = "1234"
+
         guess = "1111"
         expected_result = "2___"
         result = get_feedback(code, guess)
-        self.assertEquals(result, expected_result)
+        self.assertEquals(expected_result, result )
 
         guess = "4321"
         expected_result = "1111"
         result = get_feedback(code, guess)
-        self.assertEquals(result, expected_result)
+        self.assertEquals(expected_result, result)
 
         guess = "4___"
         expected_result = "1___"
@@ -35,3 +36,4 @@ class TestSerialDevices(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    
