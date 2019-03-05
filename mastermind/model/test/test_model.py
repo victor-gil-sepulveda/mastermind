@@ -6,7 +6,7 @@ import os.path
 import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-
+import mastermind.model.test as test_module
 from mastermind.model.model import Base, User
 
 
@@ -36,7 +36,7 @@ class TestModel(unittest.TestCase):
         ## Some lines for the game
 
         session.add_all([
-
+            john, susan
         ])
 
         session.commit()
