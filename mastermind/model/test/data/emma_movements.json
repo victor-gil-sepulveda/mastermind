@@ -1,0 +1,23 @@
+[
+    {
+        "account": 3, 
+        "amount": 20000.0, 
+        "created": "2010-05-24T00:00:00+00:00", 
+        "id": 3, 
+        "movement_type": 1
+    }, 
+    {
+        "account": 3, 
+        "amount": -2500.0, 
+        "created": "2010-05-24T00:00:00+00:00", 
+        "id": 4, 
+        "movement_type": 0
+    }, 
+    {
+        "account": 3, 
+        "amount": -3000.0, 
+        "created": "2010-05-24T00:00:00+00:00", 
+        "id": 6, 
+        "movement_type": 0
+    }
+]
