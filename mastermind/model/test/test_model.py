@@ -34,8 +34,12 @@ class TestModel(unittest.TestCase):
 
         ## A game
         test_game = Game(codemaker=susan, codebreaker=john, max_moves=8,
-                         code=Code(colors="1134"),
-                         guesses=[Guess(code=Code(colors="2324"), feedback=Feedback(colors="1___"))])
+                         code=Code(colors="1134", created=datetime.datetime.strptime('24052010', "%d%m%Y").date()),
+                         guesses=[Guess(code=Code(colors="2324", created=datetime.datetime.strptime('24052010', "%d%m%Y").date()),
+                                        feedback=Feedback(colors="1___", created=datetime.datetime.strptime('24052010', "%d%m%Y").date())),
+                                  Guess(code=Code(colors="1233", created=datetime.datetime.strptime('24052010', "%d%m%Y").date()),
+                                        feedback=Feedback(colors="22__", created=datetime.datetime.strptime('24052010', "%d%m%Y").date()))],
+                         created=datetime.datetime.strptime('24052010', "%d%m%Y").date())
 
         ## Some lines for the game
         session.add_all([
@@ -58,7 +62,13 @@ class TestModel(unittest.TestCase):
         for g in self.session.query(Game).all():
             data.append(game_schema.dump(g).data)
 
-        print data
+        # fp = open(os.path.join(self.data_folder, "loaded_data.json"), "w")
+        # json.dump(data, fp=fp, indent=4, sort_keys=True)
+
+        fp = open(os.path.join(self.data_folder, "loaded_data.json"), "r")
+        expected = json.load(fp)
+        self.maxDiff = None
+        self.assertItemsEqual(data, expected)
 
 
 if __name__ == '__main__':

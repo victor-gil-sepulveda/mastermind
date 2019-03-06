@@ -1,6 +1,4 @@
 import datetime
-import enum
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime, Enum
 from sqlalchemy.orm import relationship
@@ -32,7 +30,7 @@ class Code(Base):
     __tablename__ = CODE_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
     colors = Column(String(4), nullable=False)
-    created = Column(DateTime, onupdate=datetime.datetime.now)
+    created = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class Feedback(Base):
@@ -42,7 +40,7 @@ class Feedback(Base):
     __tablename__ = FEEDBACK_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
     colors = Column(String(4), nullable=False)
-    created = Column(DateTime, onupdate=datetime.datetime.now)
+    created = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class Guess(Base):
@@ -67,7 +65,7 @@ class Game(Base):
     """
     __tablename__ = GAME_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created = Column(DateTime, onupdate=datetime.datetime.now)
+    created = Column(DateTime, default=datetime.datetime.utcnow)
 
     # The players!
     codemaker_id = Column(Integer, ForeignKey(USER_TABLE+'.name'))
