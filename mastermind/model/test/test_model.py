@@ -7,7 +7,8 @@ import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 import mastermind.model.test as test_module
-from mastermind.model.model import Base, User
+from mastermind.model.model import Base, User, Game, Code, Guess, Feedback
+from mastermind.model.schemas import UserSchema, GameSchema
 
 
 class TestModel(unittest.TestCase):
@@ -32,11 +33,14 @@ class TestModel(unittest.TestCase):
         susan = User(name="susan", pass_hash="B78469618FB15871B9508DEFD1FF70014747C1F918E4185425C5F2BBEA2A4E5D")
 
         ## A game
+        test_game = Game(codemaker=susan, codebreaker=john, max_moves=8,
+                         code=Code(colors="1134"),
+                         guesses=[Guess(code=Code(colors="2324"), feedback=Feedback(colors="1___"))])
 
         ## Some lines for the game
-
         session.add_all([
-            john, susan
+            john, susan,
+            test_game
         ])
 
         session.commit()
@@ -46,9 +50,15 @@ class TestModel(unittest.TestCase):
     def test_model_loaded(self):
         data = []
 
-        # bank_schema = BankSchema()
-        # for b in self.session.query(Bank).all():
-        #     data.append(bank_schema.dump(b).data)
+        user_schema = UserSchema()
+        for b in self.session.query(User).all():
+            data.append(user_schema.dump(b).data)
+
+        game_schema = GameSchema()
+        for g in self.session.query(Game).all():
+            data.append(game_schema.dump(g).data)
+
+        print data
 
 
 if __name__ == '__main__':
