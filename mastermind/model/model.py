@@ -17,7 +17,7 @@ Base = declarative_base()
 
 class User(Base):
     """
-    Abstraction for a player + user
+    Abstraction for a player + user.
     """
     __tablename__ = USER_TABLE
     name = Column(String(32), nullable=False, primary_key=True)
@@ -61,6 +61,9 @@ class Guess(Base):
 class Game(Base):
     """
     A mastermind game with its setup, players and moves.
+    The score can be calculated with the number of guesses (1 point
+    for the codemaker for each guess + an extra point if
+    the codebreaker uses all the moves without discovering the code).
     """
     __tablename__ = GAME_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
