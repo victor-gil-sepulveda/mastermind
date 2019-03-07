@@ -19,7 +19,7 @@ def create_code(session, colors):
     code_id = code.id
     session.commit()
     # And return the id
-    return session, code_id
+    return code_id
 
 
 def create_game(session, codemaker_uri, codebreaker_uri, max_moves):

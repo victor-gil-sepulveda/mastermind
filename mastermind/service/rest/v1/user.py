@@ -17,7 +17,7 @@ class User(Resource):
         Creates a new user/player.
 
         Ex:
-        curl -X POST -H "Content-Type: application/json" --data '{"name":"susan", "pass_hash":"1111"}' http://127.0.0.1:5000/mastermind/v1/user
+        curl -i -X POST -H "Content-Type: application/json" --data '{"name":"susan", "pass_hash":"1111"}' http://127.0.0.1:5000/mastermind/v1/user
         """
 
         json_data = request.get_json(force=True)

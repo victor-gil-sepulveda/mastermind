@@ -16,7 +16,7 @@ class Game(Resource):
         Creates a game. This is a fast operation and returns 201 directly.
 
         Ex:
-        curl -X POST -H "Content-Type: application/json" --data '{"codemaker_uri":"sth/1", "codebreaker_uri":"sth/2", "max_moves": 3}' http://127.0.0.1:5000/mastermind/v1/game
+        curl -i -X POST -H "Content-Type: application/json" --data '{"codemaker_uri":"sth/1", "codebreaker_uri":"sth/2", "max_moves": 3}' http://127.0.0.1:5000/mastermind/v1/game
         """
         json_data = request.get_json(force=True)
 
