@@ -26,4 +26,8 @@ def setup_rest_api(flask_app):
                      gen_resource_url(API_PREFIX, version, "user/<user_id>"),
                      gen_resource_url(API_PREFIX, version, "user"))
 
+    api.add_resource(version.Code,
+                     gen_resource_url(API_PREFIX, version, "code/<code_id>"),
+                     gen_resource_url(API_PREFIX, version, "code"))
+
 

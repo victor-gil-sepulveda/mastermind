@@ -42,4 +42,3 @@ class Game(Resource):
             session.rollback()
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)
-

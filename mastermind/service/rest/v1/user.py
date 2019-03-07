@@ -15,6 +15,9 @@ class User(Resource):
     def post(self):
         """
         Creates a new user/player.
+
+        Ex:
+        curl -X POST -H "Content-Type: application/json" --data '{"name":"susan", "pass_hash":"1111"}' http://127.0.0.1:5000/mastermind/v1/user
         """
 
         json_data = request.get_json(force=True)
@@ -29,6 +32,7 @@ class User(Resource):
             response.headers["location"] = "/user/{name}".format(name=json_data["name"])
             response.autocorrect_location_header = False
             return response
+
         except KeyError, e:
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_400_BAD_REQUEST)

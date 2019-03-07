@@ -1,4 +1,4 @@
-from mastermind.model.model import Game, User
+from mastermind.model.model import Game, User, Code
 
 
 def create_user(session, user_name, user_pass_hash):
@@ -10,6 +10,16 @@ def create_user(session, user_name, user_pass_hash):
     session.add(user)
     session.commit()
     return session
+
+
+def create_code(session, colors):
+    code = Code(colors=colors)
+    session.add(code)
+    session.flush()
+    code_id = code.id
+    session.commit()
+    # And return the id
+    return session, code_id
 
 
 def create_game(session, codemaker_uri, codebreaker_uri, max_moves):
