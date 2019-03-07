@@ -3,6 +3,7 @@ from flask_api import status
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from mastermind.model.operations import create_game
+from mastermind.model.sessionsingleton import DbSessionHolder
 
 
 class Game(Resource):
@@ -19,8 +20,10 @@ class Game(Resource):
         """
         json_data = request.get_json(force=True)
 
+        session = DbSessionHolder().get_session()
         try:
-            game_id = create_game(json_data["codemaker_uri"],
+            game_id = create_game(session,
+                                  json_data["codemaker_uri"],
                                   json_data["codebreaker_uri"],
                                   int(json_data["max_moves"]))
             json_data["id"] = game_id
@@ -32,9 +35,11 @@ class Game(Resource):
             return response
 
         except (ValueError, KeyError, IntegrityError), e:
+            session.rollback()
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_400_BAD_REQUEST)
         except Exception, e:
+            session.rollback()
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)
 
