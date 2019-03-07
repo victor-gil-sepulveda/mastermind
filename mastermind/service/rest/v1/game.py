@@ -34,7 +34,6 @@ class Game(Resource):
         except (ValueError, KeyError, IntegrityError), e:
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_400_BAD_REQUEST)
-
         except Exception, e:
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)

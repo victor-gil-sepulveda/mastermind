@@ -1,5 +1,16 @@
-from mastermind.model.model import Game
+from mastermind.model.model import Game, User
 from mastermind.model.sessionsingleton import DbSessionHolder
+
+
+def create_user(user_name, user_pass_hash):
+    """
+    Inserts a new user/player in the DB.
+    """
+    # Perform the db job
+    session = DbSessionHolder().get_session()
+    user = User(name=user_name, pass_hash=user_pass_hash)
+    session.add(user)
+    session.commit()
 
 
 def create_game(codemaker_uri, codebreaker_uri, max_moves):
