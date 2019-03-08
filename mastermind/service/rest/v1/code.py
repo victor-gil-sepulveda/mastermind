@@ -22,6 +22,7 @@ class Code(Resource):
         try:
             code_id = create_code(session,
                                   json_data["colors"])
+            json_data["id"] = code_id
             response = make_response(jsonify(json_data),
                                      status.HTTP_201_CREATED)
             response.headers["location"] = "/code/{code_id}".format(code_id=code_id)
