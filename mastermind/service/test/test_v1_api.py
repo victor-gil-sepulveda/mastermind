@@ -23,9 +23,7 @@ class TestV1API(unittest.TestCase):
         self.client = app.test_client
 
         # Init db
-        if os.path.exists(TestV1API.REST_TEST_DB):
-            os.remove(TestV1API.REST_TEST_DB)
-        session = DbSessionHolder(TestV1API.REST_TEST_DB)
+        DbSessionHolder(TestV1API.REST_TEST_DB).reset()
 
     def test_user_creation(self):
         endpoint = gen_resource_url(API_PREFIX, v1, "user")
@@ -58,6 +56,22 @@ class TestV1API(unittest.TestCase):
         self.assertEqual(status.HTTP_201_CREATED, parse_status(response.status))
         # this is the first one introduced and has id = 1
         self.assertEqual("/code/1", response.location)
+        self.assertDictEqual({"id": 1, "colors": "____"}, json.loads(response.data))
+
+    def test_feedback_creation(self):
+        # repeated code ahead
+        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+
+        # Adding a new code returns 201
+        response = self.client().post(endpoint, data=json.dumps({
+            "colors": "____"
+        }))
+
+        print str(response)
+        print response.data
+        self.assertEqual(status.HTTP_201_CREATED, parse_status(response.status))
+        # this is the first one introduced and has id = 1
+        self.assertEqual("/feedback/1", response.location)
         self.assertDictEqual({"id": 1, "colors": "____"}, json.loads(response.data))
 
 if __name__ == "__main__":
