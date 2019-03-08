@@ -1,4 +1,3 @@
-import os
 import unittest
 from flask.app import Flask
 import json
@@ -6,6 +5,8 @@ from mastermind.model.sessionsingleton import DbSessionHolder
 from mastermind.service.rest.api import setup_rest_api, API_PREFIX, gen_resource_url
 import mastermind.service.rest.v1 as v1
 from flask_api import status
+import random
+import string
 
 from mastermind.service.rest.tools import parse_status
 
@@ -98,8 +99,101 @@ class TestV1API(unittest.TestCase):
                 "feedback_id": 1
             }
         }
-        self.assertEqual("/code?code_id=1&feedback_id=1", response.location)
+        self.assertEqual("/guess?code_id=1&feedback_id=1", response.location)
         self.assertDictEqual(expected, json.loads(response.data))
+
+    def create_a_game(self):
+        # Create the players
+        endpoint = gen_resource_url(API_PREFIX, v1, "user")
+        susan_response = self.client().post(endpoint, data=json.dumps({
+            "name": "susan",
+            "pass_hash": "111111"
+        }))
+        john_response = self.client().post(endpoint, data=json.dumps({
+            "name": "john",
+            "pass_hash": "22222"
+        }))
+
+        # Create the game with default max_moves
+        endpoint = gen_resource_url(API_PREFIX, v1, "game")
+        response = self.client().post(endpoint, data=json.dumps({
+            "codemaker_uri": susan_response.location,
+            "codebreaker_uri": john_response.location
+        }))
+        return susan_response, john_response, response
+
+    def test_game_creation(self):
+        susan_response, john_response, response = self.create_a_game()
+
+        expected = {
+            "id": 1,
+            "codebreaker_uri": "/user/john",
+            "codemaker_uri": "/user/susan",
+            "max_moves": 8
+        }
+
+        self.assertEqual("/game/1", response.location)
+        self.assertDictEqual(expected, json.loads(response.data))
+
+        # Defining max_moves ...
+        endpoint = gen_resource_url(API_PREFIX, v1, "game")
+        response = self.client().post(endpoint, data=json.dumps({
+            "codemaker_uri": susan_response.location,
+            "codebreaker_uri": john_response.location,
+            "max_moves": 10
+        }))
+        self.assertEqual(10, json.loads(response.data)["max_moves"])
+
+        # Incorrect max_moves must return a bad request
+        response = self.client().post(endpoint, data=json.dumps({
+            "codemaker_uri": susan_response.location,
+            "codebreaker_uri": john_response.location,
+            "max_moves": 33
+        }))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, parse_status(response.status))
+
+    def add_random_guess(self, game_id):
+        # repeated code ahead
+        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        code_response = self.client().post(endpoint, data=json.dumps({
+            "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
+        }))
+
+        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+        fb_response = self.client().post(endpoint, data=json.dumps({
+            "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
+        }))
+
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        response = self.client().post(endpoint, data=json.dumps({
+            "code_uri": code_response.location,
+            "feedback_uri": fb_response.location
+        }))
+
+
+    def test_get_game(self):
+        susan_response, john_response, game_response = self.create_a_game()
+        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:]) # remove the first "/" from location
+        response = self.client().get(endpoint)
+        expected = {
+            "code": None,
+            "codebreaker": "john",
+            "codemaker": "susan",
+            "guesses": [],
+            "id": 1,
+            "max_moves": 8
+        }
+        json_response = json.loads(response.data)
+        del json_response["created"] # The creation date will be always different to the golden data one
+        self.assertDictEqual(expected, json_response)
+
+        # If the game does not exist we get an error
+        endpoint = gen_resource_url(API_PREFIX, v1, "game/-1")
+        response = self.client().get(endpoint)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, parse_status(response.status))
+
+        # If the game has some guesses and code, we also get them
+
 
 if __name__ == "__main__":
     unittest.main()

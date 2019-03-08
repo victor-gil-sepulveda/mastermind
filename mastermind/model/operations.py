@@ -1,4 +1,5 @@
 from mastermind.model.model import Game, User, Code, Feedback, Guess
+from mastermind.model.schemas import GameSchema
 
 
 def create_user(session, user_name, user_pass_hash):
@@ -54,8 +55,8 @@ def create_game(session, codemaker_uri, codebreaker_uri, max_moves):
     # Get codemaker and codebreaker ids, in this case we prefer
     # to parse the string. We can instead do a couple of get requests
     # instead
-    codemaker_id = int(codemaker_uri.split("/")[-1])
-    codebreaker_id = int(codebreaker_uri.split("/")[-1])
+    codemaker_id = codemaker_uri.split("/")[-1]
+    codebreaker_id = codebreaker_uri.split("/")[-1]
 
     # Perform the db job
     game = Game(codemaker_id=codemaker_id, codebreaker_id=codebreaker_id, max_moves=max_moves)
@@ -65,5 +66,33 @@ def create_game(session, codemaker_uri, codebreaker_uri, max_moves):
     session.commit()
 
     # And return the id
-    return session, game_id
+    return game_id
+
+
+def get_game(session, game_id, expand_resources=False):
+    game = session.query(Game).get(game_id)
+    if game is None:
+        return None
+    game_schema = GameSchema()
+    game_json = game_schema.dump(game).data
+    if not expand_resources:
+        # Resources are already expanded, we have to get the uris from them
+        # we use a TRIVIAL approach here
+        if game_json["code"] is not None:
+            code_uri = "code/" + str(game_json["code"]["id"])
+            game_json["code"] = code_uri
+
+        guess_resources = []
+        for json_guess in game_json["guesses"]:
+            code_id = json_guess["code_id"]
+            feedback_id = json_guess["feedback_id"]
+            guess_resources.append("/guess?code_id={code_id}&feedback_id={feedback_id}".format(
+                code_id=code_id,
+                feedback_id=feedback_id))
+    return game_json
+
+
+def add_game_id_to_guess():
+    pass
+
 

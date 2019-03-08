@@ -2,11 +2,12 @@ from flask import jsonify, make_response, request
 from flask_api import status
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-from mastermind.model.operations import create_game
+from mastermind.model.operations import create_game, get_game
 from mastermind.model.sessionsingleton import DbSessionHolder
 
 
 class Game(Resource):
+    DEFAULT_MAX_MOVES = 8
 
     def __init__(self):
         pass
@@ -21,6 +22,9 @@ class Game(Resource):
         json_data = request.get_json(force=True)
 
         session = DbSessionHolder().get_session()
+        # Default value
+        if not "max_moves" in json_data:
+            json_data["max_moves"] = Game.DEFAULT_MAX_MOVES
         try:
             game_id = create_game(session,
                                   json_data["codemaker_uri"],
@@ -40,5 +44,27 @@ class Game(Resource):
                                  status.HTTP_400_BAD_REQUEST)
         except Exception, e:
             session.rollback()
+            return make_response(jsonify({"error": str(e)}),
+                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, game_id):
+        """
+        Obtains a game from the database
+        """
+        session = DbSessionHolder().get_session()
+
+        if game_id is None:
+            return make_response(jsonify({"error": "You need to specify the game ID."}),
+                                 status.HTTP_400_BAD_REQUEST)
+        try:
+            game_data = get_game(session, game_id)
+            if game_data is None:
+                return make_response(jsonify({"error": "Game not found."}),
+                                     status.HTTP_404_NOT_FOUND)
+
+            return make_response(jsonify(game_data),
+                                 status.HTTP_200_OK)
+
+        except Exception, e:
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)
