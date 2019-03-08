@@ -1,4 +1,4 @@
-from mastermind.model.model import Game, User, Code, Feedback
+from mastermind.model.model import Game, User, Code, Feedback, Guess
 
 
 def create_user(session, user_name, user_pass_hash):
@@ -30,6 +30,20 @@ def create_feedback(session, colors):
     session.commit()
     # And return the id
     return feedback_id
+
+
+def create_guess(session, code_uri, feedback_uri):
+    # Again, we can get the ids in a more elegant way but time is money :)
+    code_id = int(code_uri.split("/")[-1])
+    feedback_id = int(feedback_uri.split("/")[-1])
+
+    # db job
+    guess = Guess(code_id=code_id, feedback_id=feedback_id)
+    session.add(guess)
+    session.commit()
+
+    # return the composite id
+    return code_id, feedback_id
 
 
 def create_game(session, codemaker_uri, codebreaker_uri, max_moves):

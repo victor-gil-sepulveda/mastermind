@@ -67,12 +67,39 @@ class TestV1API(unittest.TestCase):
             "colors": "____"
         }))
 
-        print str(response)
-        print response.data
         self.assertEqual(status.HTTP_201_CREATED, parse_status(response.status))
         # this is the first one introduced and has id = 1
         self.assertEqual("/feedback/1", response.location)
         self.assertDictEqual({"id": 1, "colors": "____"}, json.loads(response.data))
+
+    def test_guess_creation(self):
+        # repeated code ahead
+        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        code_response = self.client().post(endpoint, data=json.dumps({
+            "colors": "____"
+        }))
+
+        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+        fb_response = self.client().post(endpoint, data=json.dumps({
+            "colors": "XXXX"
+        }))
+
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        response = self.client().post(endpoint, data=json.dumps({
+            "code_uri": code_response.location,
+            "feedback_uri": fb_response.location
+        }))
+
+        expected = {
+            "code_uri": "/code/1",
+            "feedback_uri": "/feedback/1",
+            "id": {
+                "code_id": 1,
+                "feedback_id": 1
+            }
+        }
+        self.assertEqual("/code?code_id=1&feedback_id=1", response.location)
+        self.assertDictEqual(expected, json.loads(response.data))
 
 if __name__ == "__main__":
     unittest.main()
