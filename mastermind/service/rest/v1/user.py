@@ -2,7 +2,6 @@ from flask import jsonify, make_response, request
 from flask_api import status
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-
 from mastermind.model.operations import create_user
 from mastermind.model.sessionsingleton import DbSessionHolder
 
