@@ -4,6 +4,13 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from mastermind.model.operations import create_game, get_game
 from mastermind.model.sessionsingleton import DbSessionHolder
+from webargs import fields
+from flask import request
+from webargs.flaskparser import parser
+
+get_args = {
+    "expand_resources": fields.Bool(missing=False, required=False)
+}
 
 
 class Game(Resource):
@@ -53,11 +60,13 @@ class Game(Resource):
         """
         session = DbSessionHolder().get_session()
 
+        args = parser.parse(get_args, request)
+
         if game_id is None:
             return make_response(jsonify({"error": "You need to specify the game ID."}),
                                  status.HTTP_400_BAD_REQUEST)
         try:
-            game_data = get_game(session, game_id)
+            game_data = get_game(session, game_id, args["expand_resources"])
             if game_data is None:
                 return make_response(jsonify({"error": "Game not found."}),
                                      status.HTTP_404_NOT_FOUND)

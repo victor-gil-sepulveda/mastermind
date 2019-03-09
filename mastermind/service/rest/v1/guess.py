@@ -2,14 +2,15 @@ from flask import jsonify, make_response, request
 from flask_api import status
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-from mastermind.model.operations import create_guess
+from mastermind.model.operations import create_guess, add_game_id_to_guess
 from mastermind.model.sessionsingleton import DbSessionHolder
 from webargs import fields
 from webargs.flaskparser import use_args
 
-url_args = {
-    "code_id": fields.String(required=True),
-    "feedback_id": fields.Int(required=True)
+patch_args = {
+    "code_id": fields.Int(required=True),
+    "feedback_id": fields.Int(required=True),
+    "expand_resources": fields.Bool(missing=False, required=False)
 }
 
 
@@ -52,11 +53,11 @@ class Guess(Resource):
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_400_BAD_REQUEST)
         except Exception, e:
-            session.rollback() # just in case
+            session.rollback()  # just in case
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @use_args(url_args)
+    @use_args(patch_args)
     def patch(self, args):
         code_id = int(args["code_id"])
         feedback_id = int(args["feedback_id"])
@@ -65,8 +66,14 @@ class Guess(Resource):
 
         try:
             if "game_id" in json_data:
-                pass
-
+                new_guess = add_game_id_to_guess(session, code_id, feedback_id, int(json_data["game_id"]), args["expand_resources"])
+                response, code_id, feedback_id = make_response(jsonify(new_guess),
+                                                               status.HTTP_200_OK)
+                response.headers["location"] = "/guess?code_id={code_id}&feedback_id={feedback_id}".format(
+                    code_id=code_id,
+                    feedback_id=feedback_id)
+                response.autocorrect_location_header = False
+                return response
         except Exception, e:
             session.rollback() # just in case
             return make_response(jsonify({"error": str(e)}),

@@ -152,24 +152,55 @@ class TestV1API(unittest.TestCase):
         }))
         self.assertEqual(status.HTTP_400_BAD_REQUEST, parse_status(response.status))
 
-    def add_random_guess(self, game_id):
+    def create_random_guess(self):
         # repeated code ahead
+        # Create the code
         endpoint = gen_resource_url(API_PREFIX, v1, "code")
         code_response = self.client().post(endpoint, data=json.dumps({
             "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
         }))
 
+        # Create the feedback
         endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
         fb_response = self.client().post(endpoint, data=json.dumps({
             "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
         }))
 
+        # And now create the guess!
         endpoint = gen_resource_url(API_PREFIX, v1, "guess")
-        response = self.client().post(endpoint, data=json.dumps({
+        self.client().post(endpoint, data=json.dumps({
             "code_uri": code_response.location,
             "feedback_uri": fb_response.location
         }))
 
+        return int(json.loads(code_response.data)["id"]), int(json.loads(fb_response.data)["id"])
+
+    def test_patch_guess(self):
+        susan_response, john_response, game_response = self.create_a_game()
+        game_id = json.loads(game_response.data)["id"]
+        code_id, feedback_id = self.create_random_guess()
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
+            code_id=code_id,
+            feedback_id=feedback_id
+        ))
+        response = self.client().patch(endpoint, data=json.dumps({
+            "game_id": game_id
+        }))
+
+        print response.data
+        self.assertTrue("game_id" in json.loads(response.data))
+
+    def add_random_guess_to_game(self, game_id):
+        code_id, feedback_id = self.create_random_guess()
+
+        # Finally add the guess to the game
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}".format(
+            code_id=code_id,
+            feedback_id=feedback_id
+        ))
+        self.client().patch(endpoint, data=json.dumps({
+            "game_id": game_id
+        }))
 
     def test_get_game(self):
         susan_response, john_response, game_response = self.create_a_game()
@@ -184,6 +215,7 @@ class TestV1API(unittest.TestCase):
             "max_moves": 8
         }
         json_response = json.loads(response.data)
+        game_id = json.loads(response.data)["id"]
         del json_response["created"] # The creation date will be always different to the golden data one
         self.assertDictEqual(expected, json_response)
 
@@ -193,6 +225,27 @@ class TestV1API(unittest.TestCase):
         self.assertEqual(status.HTTP_404_NOT_FOUND, parse_status(response.status))
 
         # If the game has some guesses and code, we also get them
+        for _ in range(5):
+            self.add_random_guess_to_game(game_id)
+        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:])  # remove the first "/" from location
+        response = self.client().get(endpoint)
+        expected = {
+            "id": 1,
+            "code": None,
+            "max_moves": 8,
+            "codebreaker": "john",
+            "codemaker": "susan",
+            "guesses": [
+                "/guess?code_id=1&feedback_id=1",
+                "/guess?code_id=2&feedback_id=2",
+                "/guess?code_id=3&feedback_id=3",
+                "/guess?code_id=4&feedback_id=4",
+                "/guess?code_id=5&feedback_id=5"]
+        }
+
+        json_response = json.loads(response.data)
+        del json_response["created"]
+        self.assertDictEqual(expected, json_response)
 
 
 if __name__ == "__main__":

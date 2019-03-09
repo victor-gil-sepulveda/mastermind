@@ -1,5 +1,5 @@
 from mastermind.model.model import Game, User, Code, Feedback, Guess
-from mastermind.model.schemas import GameSchema
+from mastermind.model.schemas import GameSchema, GuessSchema
 
 
 def create_user(session, user_name, user_pass_hash):
@@ -77,22 +77,34 @@ def get_game(session, game_id, expand_resources=False):
     game_json = game_schema.dump(game).data
     if not expand_resources:
         # Resources are already expanded, we have to get the uris from them
-        # we use a TRIVIAL approach here
+        # we use a TRIVIAL approach here TODO: do it using marshmallow!!!
         if game_json["code"] is not None:
             code_uri = "code/" + str(game_json["code"]["id"])
             game_json["code"] = code_uri
 
         guess_resources = []
         for json_guess in game_json["guesses"]:
-            code_id = json_guess["code_id"]
-            feedback_id = json_guess["feedback_id"]
+            code_id = json_guess["code"]["id"]
+            feedback_id = json_guess["feedback"]["id"]
             guess_resources.append("/guess?code_id={code_id}&feedback_id={feedback_id}".format(
                 code_id=code_id,
                 feedback_id=feedback_id))
+        game_json["guesses"] = guess_resources
     return game_json
 
 
-def add_game_id_to_guess():
-    pass
+def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resources=False):
+    guess = session.query(Guess).get((code_id, feedback_id))
+    guess.game_id = game_id
+    session.commit()
+    guess_schema = GuessSchema()
+    guess_json = guess_schema.dump(guess).data
+    if not expand_resources:
+        # Then create the urls TODO: do it using marshmallow!!!
+        code_uri = "code/{code_id}".format(code_id=guess_json["code"]["id"])
+        guess_json["code"] = code_uri
+        feedback_uri = "feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
+        guess_json["feedback"] = feedback_uri
+    return guess_json
 
 
