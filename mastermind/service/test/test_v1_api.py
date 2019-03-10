@@ -102,6 +102,32 @@ class TestV1API(unittest.TestCase):
         self.assertEqual("/guess?code_id=1&feedback_id=1", response.location)
         self.assertDictEqual(expected, json.loads(response.data))
 
+    def test_guess_auto_creation(self):
+        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        game_code_response = self.client().post(endpoint, data=json.dumps({
+            "colors": "1234"
+        }))
+        code_response = self.client().post(endpoint, data=json.dumps({
+            "colors": "4___"
+        }))
+
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        response = self.client().post(endpoint, data=json.dumps({
+            "code_uri": code_response.location,
+            "game_code_uri": game_code_response.location
+        }))
+
+        print response.data
+        feedback_id = json.loads(response.data)["id"]["feedback_id"]
+        endpoint = gen_resource_url(API_PREFIX, v1,
+                                    "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=true".format(
+                                        code_id=json.loads(response.data)["id"]["code_id"],
+                                        feedback_id=feedback_id
+                                    ))
+
+        response = self.client().get("feedback/{feedback_id}".format(feedback_id=feedback_id))
+        print response.data
+
     def create_a_game(self):
         # Create the players
         endpoint = gen_resource_url(API_PREFIX, v1, "user")
@@ -175,6 +201,21 @@ class TestV1API(unittest.TestCase):
 
         return int(json.loads(code_response.data)["id"]), int(json.loads(fb_response.data)["id"])
 
+    def test_get_guess(self):
+        code_id, feedback_id = self.create_random_guess()
+        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
+            code_id=code_id,
+            feedback_id=feedback_id
+        ))
+
+        response = self.client().get(endpoint)
+        expected = {
+            "code": "code/1",
+            "feedback": "feedback/1",
+            "game": None
+        }
+        self.assertDictEqual(expected, json.loads(response.data))
+
     def test_patch_guess(self):
         susan_response, john_response, game_response = self.create_a_game()
         game_id = json.loads(game_response.data)["id"]
@@ -186,8 +227,6 @@ class TestV1API(unittest.TestCase):
         response = self.client().patch(endpoint, data=json.dumps({
             "game_id": game_id
         }))
-
-        print response.data
         self.assertTrue("game_id" in json.loads(response.data))
 
     def add_random_guess_to_game(self, game_id):

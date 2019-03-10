@@ -13,7 +13,9 @@ Board and Game are modelled as the same entity.
 
 Each game has a code, instead of a code relating to a game. As there should
 be more guesses than simple codes (or games), we will save some space (
-a very small amount of space, but it was unny to make the model a bit more complex!). 
+a very small amount of space, but it was unny to make the model a bit more complex!).
+
+Make optional: adding game id to guess.
 
 ### Errors
 Endpoints return raw exceptions as error messages. They should return 

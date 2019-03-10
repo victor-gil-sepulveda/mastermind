@@ -1,3 +1,4 @@
+from mastermind.control.gamemechanics import get_feedback
 from mastermind.model.model import Game, User, Code, Feedback, Guess
 from mastermind.model.schemas import GameSchema, GuessSchema
 
@@ -47,6 +48,19 @@ def create_guess(session, code_uri, feedback_uri):
     return code_id, feedback_id
 
 
+def create_guess_with_auto_feedback(session, code_uri, game_code_uri):
+    code_id = int(code_uri.split("/")[-1])
+    game_code_id = int(game_code_uri.split("/")[-1])
+    code = session.query(Code).get(code_id)
+    game_code = session.query(Code).get(game_code_id)
+
+    # Create a feedback
+    feedback_colors = get_feedback(code=game_code.colors, guess=code.colors)
+    feedback_id = create_feedback(session, feedback_colors)
+
+    return code_id, feedback_id
+
+
 def create_game(session, codemaker_uri, codebreaker_uri, max_moves):
     """
     Creates a new game in the database.
@@ -91,6 +105,19 @@ def get_game(session, game_id, expand_resources=False):
                 feedback_id=feedback_id))
         game_json["guesses"] = guess_resources
     return game_json
+
+
+def get_guess(session, code_id, feedback_id, expand_resources):
+    guess = session.query(Guess).get((code_id, feedback_id))
+    guess_schema = GuessSchema()
+    guess_json = guess_schema.dump(guess).data
+    if not expand_resources:
+        # Then create the urls TODO: do it using marshmallow!!!
+        code_uri = "code/{code_id}".format(code_id=guess_json["code"]["id"])
+        guess_json["code"] = code_uri
+        feedback_uri = "feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
+        guess_json["feedback"] = feedback_uri
+    return guess_json
 
 
 def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resources=False):

@@ -30,7 +30,7 @@ class Game(Resource):
 
         session = DbSessionHolder().get_session()
         # Default value
-        if not "max_moves" in json_data:
+        if "max_moves" not in json_data:
             json_data["max_moves"] = Game.DEFAULT_MAX_MOVES
         try:
             game_id = create_game(session,
