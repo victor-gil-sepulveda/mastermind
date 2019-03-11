@@ -32,6 +32,7 @@ class Game(Resource):
         # Default value
         if "max_moves" not in json_data:
             json_data["max_moves"] = Game.DEFAULT_MAX_MOVES
+
         try:
             game_id = create_game(session,
                                   json_data["codemaker_uri"],
