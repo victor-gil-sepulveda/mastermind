@@ -1,6 +1,6 @@
 import unittest
 
-from mastermind.model.game import get_feedback
+from mastermind.control.gamemechanics import get_feedback
 
 
 class TestSerialDevices(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestSerialDevices(unittest.TestCase):
         guess = "1111"
         expected_result = "2___"
         result = get_feedback(code, guess)
-        self.assertEquals(expected_result, result )
+        self.assertEquals(expected_result, result)
 
         guess = "4321"
         expected_result = "1111"

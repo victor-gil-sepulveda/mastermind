@@ -1,6 +1,6 @@
 from mastermind.control.gamemechanics import get_feedback
 from mastermind.model.model import Game, User, Code, Feedback, Guess
-from mastermind.model.schemas import GameSchema, GuessSchema
+from mastermind.model.schemas import GameSchema, GuessSchema, FeedbackSchema
 
 
 def create_user(session, user_name, user_pass_hash):
@@ -83,6 +83,13 @@ def create_game(session, codemaker_uri, codebreaker_uri, max_moves):
     return game_id
 
 
+def get_feedback_data(session, feedback_id):
+    feedback = session.query(Feedback).get(feedback_id)
+    feedback_schema = FeedbackSchema()
+    feedback_json = feedback_schema.dump(feedback).data
+    return feedback_json
+
+
 def get_game(session, game_id, expand_resources=False):
     game = session.query(Game).get(game_id)
     if game is None:
@@ -126,6 +133,8 @@ def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resource
     session.commit()
     guess_schema = GuessSchema()
     guess_json = guess_schema.dump(guess).data
+    # Convert game id to uri
+    guess_json["game"] = "game/{game_id}".format(game_id=game_id)
     if not expand_resources:
         # Then create the urls TODO: do it using marshmallow!!!
         code_uri = "code/{code_id}".format(code_id=guess_json["code"]["id"])

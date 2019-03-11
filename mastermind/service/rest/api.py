@@ -31,7 +31,7 @@ def setup_rest_api(flask_app):
                      gen_resource_url(API_PREFIX, version, "code"))
 
     api.add_resource(version.Feedback,
-                     gen_resource_url(API_PREFIX, version, "feedback/<code_id>"),
+                     gen_resource_url(API_PREFIX, version, "feedback/<feedback_id>"),
                      gen_resource_url(API_PREFIX, version, "feedback"))
 
     api.add_resource(version.Guess,

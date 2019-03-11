@@ -19,6 +19,7 @@ get_args = {
     "expand_resources": fields.Bool(missing=False, required=False)
 }
 
+
 class Guess(Resource):
 
     def __init__(self):
@@ -37,6 +38,8 @@ class Guess(Resource):
                 code_id, feedback_id = create_guess_with_auto_feedback(session,
                                                                        json_data["code_uri"],
                                                                        json_data["game_code_uri"])
+                del json_data["game_code_uri"]
+                json_data["feedback_uri"] = "feedback/{feedback_id}".format(feedback_id=feedback_id)
             else:
                 code_id, feedback_id = create_guess(session,
                                                     json_data["code_uri"],

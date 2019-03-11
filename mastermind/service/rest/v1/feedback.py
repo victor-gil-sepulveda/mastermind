@@ -1,7 +1,8 @@
 from flask import jsonify, make_response, request
 from flask_api import status
 from flask_restful import Resource
-from mastermind.model.operations import create_feedback
+from sqlalchemy.exc import IntegrityError
+from mastermind.model.operations import create_feedback, get_feedback_data
 from mastermind.model.sessionsingleton import DbSessionHolder
 
 
@@ -35,3 +36,24 @@ class Feedback(Resource):
             session.rollback() # just in case
             return make_response(jsonify({"error": str(e)}),
                                  status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, feedback_id):
+        """
+        Obtains a feedback from the database.
+        """
+        session = DbSessionHolder().get_session()
+
+        try:
+            feedback_json = get_feedback_data(session, feedback_id)
+            response = make_response(jsonify(feedback_json),
+                                     status.HTTP_201_CREATED)
+            return response
+
+        except (KeyError, IntegrityError), e:
+            return make_response(jsonify({"error": str(e)}),
+                                 status.HTTP_400_BAD_REQUEST)
+        except Exception, e:
+            return make_response(jsonify({"error": str(e)}),
+                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+

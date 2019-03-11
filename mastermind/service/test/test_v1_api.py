@@ -117,16 +117,11 @@ class TestV1API(unittest.TestCase):
             "game_code_uri": game_code_response.location
         }))
 
-        print response.data
+        # Get the colors of the feedback
         feedback_id = json.loads(response.data)["id"]["feedback_id"]
-        endpoint = gen_resource_url(API_PREFIX, v1,
-                                    "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=true".format(
-                                        code_id=json.loads(response.data)["id"]["code_id"],
-                                        feedback_id=feedback_id
-                                    ))
-
-        response = self.client().get("feedback/{feedback_id}".format(feedback_id=feedback_id))
-        print response.data
+        endpoint = gen_resource_url(API_PREFIX, v1, "feedback/{feedback_id}".format(feedback_id=feedback_id))
+        response = self.client().get(endpoint)
+        self.assertEqual("1___", json.loads(response.data)["colors"])
 
     def create_a_game(self):
         # Create the players
@@ -227,7 +222,8 @@ class TestV1API(unittest.TestCase):
         response = self.client().patch(endpoint, data=json.dumps({
             "game_id": game_id
         }))
-        self.assertTrue("game_id" in json.loads(response.data))
+        self.assertTrue("game" in json.loads(response.data))
+        self.assertEqual("game/1", json.loads(response.data)["game"])
 
     def add_random_guess_to_game(self, game_id):
         code_id, feedback_id = self.create_random_guess()
