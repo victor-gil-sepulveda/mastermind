@@ -173,6 +173,19 @@ class TestV1API(unittest.TestCase):
         }))
         self.assertEqual(status.HTTP_400_BAD_REQUEST, parse_status(response.status))
 
+    def test_patch_game_code(self):
+        susan_response, john_response, game_response = self.create_a_game()
+
+        code_endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        code_response = self.client().post(code_endpoint, data=json.dumps({
+            "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
+        }))
+        game_endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:])
+        new_game_response = self.client().patch(game_endpoint, data=json.dumps({
+            "game_code_uri": code_response.location
+        }))
+        self.assertEqual('code/1', json.loads(new_game_response.data)["code"])
+
     def create_random_guess(self):
         # repeated code ahead
         # Create the code

@@ -58,6 +58,11 @@ def create_guess_with_auto_feedback(session, code_uri, game_code_uri):
     feedback_colors = get_feedback(code=game_code.colors, guess=code.colors)
     feedback_id = create_feedback(session, feedback_colors)
 
+    # db job
+    guess = Guess(code_id=code_id, feedback_id=feedback_id)
+    session.add(guess)
+    session.commit()
+
     return code_id, feedback_id
 
 
@@ -90,10 +95,7 @@ def get_feedback_data(session, feedback_id):
     return feedback_json
 
 
-def get_game(session, game_id, expand_resources=False):
-    game = session.query(Game).get(game_id)
-    if game is None:
-        return None
+def get_game_json(game, expand_resources):
     game_schema = GameSchema()
     game_json = game_schema.dump(game).data
     if not expand_resources:
@@ -114,6 +116,13 @@ def get_game(session, game_id, expand_resources=False):
     return game_json
 
 
+def get_game(session, game_id, expand_resources=False):
+    game = session.query(Game).get(game_id)
+    if game is None:
+        return None
+    return get_game_json(game, expand_resources)
+
+
 def get_guess(session, code_id, feedback_id, expand_resources):
     guess = session.query(Guess).get((code_id, feedback_id))
     guess_schema = GuessSchema()
@@ -132,6 +141,7 @@ def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resource
     guess.game_id = game_id
     session.commit()
     guess_schema = GuessSchema()
+
     guess_json = guess_schema.dump(guess).data
     # Convert game id to uri
     guess_json["game"] = "game/{game_id}".format(game_id=game_id)
@@ -144,3 +154,9 @@ def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resource
     return guess_json
 
 
+def add_game_code_id_to_guess(session, game_id, game_code_uri, expand_resources):
+    game_code_id = int(game_code_uri.split("/")[-1])
+    game = session.query(Game).get(game_id)
+    game.code_id = game_code_id
+    session.commit()
+    return get_game_json(game, expand_resources)

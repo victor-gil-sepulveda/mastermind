@@ -54,7 +54,12 @@ if __name__ == "__main__":
     #***********************************
 
     # Then add the code to the game (patching)
+    new_game_response = requests.patch(get_complete_endpoint(game_uri[1:]), data=json.dumps({
+        "game_code_uri": game_code_uri
+    }))
 
+    print "Game created:"
+    print json.dumps(new_game_response.json(), indent=4, sort_keys=True)
     # We can start making some guesses
     for _ in range(8):
         # Create a new guess code
@@ -72,32 +77,24 @@ if __name__ == "__main__":
             "game_code_uri": game_code_uri
         }))
         guess_uri = guess_resp.headers["location"]
+
+        new_guess_resp = requests.patch(get_complete_endpoint(guess_uri[1:]), data=json.dumps({
+            "game_id": new_game_response.json()["id"]#game_uri[1:]
+        }))
         # ***********************************
 
-        # Get the ids
-        guess_data = json.loads(guess_code_resp.data)
-        code_id, feedback_id = guess_data["id"]["code_id"], guess_data["id"]["feedback_id"]
-
-        # Patch with the game uri. TODO: Option to create with known game_id
-        guess_uri = "/guess?code_id={code_id}&feedback_id={feedback_id}".format(
-            code_id=code_id,
-            feedback_id=feedback_id
-        )
-        guess_resp = requests.patch(get_complete_endpoint(guess_uri), data=json.dumps({
-            "game_uri": game_uri
-        }))
-
     # ***********************************
-    # Check game historic
+    # Check game history
     # ***********************************
     # Get the game, print the board (we can use the extend option in order to get all the data of guesses).
-    game_resp = requests.get(get_complete_endpoint(game_uri))
+    game_resp = requests.get(get_complete_endpoint(game_uri[1:]))
     # Print the resources
-    guesses = json.loads(game_resp.data)["guesses"]
+    print "Game board after 8 random guesses with computer feedback:"
+    guesses = game_resp.json()["guesses"]
     for guess_uri in guesses:
-        print guess_uri
+        print "\t- {uri}".format(uri=guess_uri)
         # Get the guess, expand the resources inside
-        board_guess_resp = requests.patch(get_complete_endpoint(guess_uri+"&expand_resources=true"), data=json.dumps({
-            "game_uri": game_uri
-        }))
-        print json.loads(board_guess_resp.data)
+        board_guess_resp = requests.get(get_complete_endpoint(guess_uri[1:]+"&expand_resources=true"))
+        bgr = board_guess_resp.json()
+        print "\t guess code: {guess_code} feedback: {feedback}".format(guess_code=bgr["code"]["colors"],
+                                                                        feedback=bgr["feedback"]["colors"])

@@ -2,7 +2,7 @@ from flask import jsonify, make_response, request
 from flask_api import status
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-from mastermind.model.operations import create_game, get_game
+from mastermind.model.operations import create_game, get_game, add_game_code_id_to_guess
 from mastermind.model.sessionsingleton import DbSessionHolder
 from webargs import fields
 from flask import request
@@ -60,7 +60,6 @@ class Game(Resource):
         Obtains a game from the database
         """
         session = DbSessionHolder().get_session()
-
         args = parser.parse(get_args, request)
 
         if game_id is None:
@@ -68,6 +67,34 @@ class Game(Resource):
                                  status.HTTP_400_BAD_REQUEST)
         try:
             game_data = get_game(session, game_id, args["expand_resources"])
+            if game_data is None:
+                return make_response(jsonify({"error": "Game not found."}),
+                                     status.HTTP_404_NOT_FOUND)
+
+            return make_response(jsonify(game_data),
+                                 status.HTTP_200_OK)
+
+        except Exception, e:
+            return make_response(jsonify({"error": str(e)}),
+                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def patch(self, game_id):
+        """
+        Obtains a game from the database
+        """
+        json_data = request.get_json(force=True)
+        args = parser.parse(get_args, request)
+        session = DbSessionHolder().get_session()
+
+        if game_id is None:
+            return make_response(jsonify({"error": "You need to specify the game ID."}),
+                                 status.HTTP_400_BAD_REQUEST)
+
+        try:
+            game_data = add_game_code_id_to_guess(session,
+                                                  int(game_id),
+                                                  json_data["game_code_uri"],
+                                                  args["expand_resources"])
             if game_data is None:
                 return make_response(jsonify({"error": "Game not found."}),
                                      status.HTTP_404_NOT_FOUND)

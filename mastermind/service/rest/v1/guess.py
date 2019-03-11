@@ -86,6 +86,9 @@ class Guess(Resource):
                     feedback_id=feedback_id)
                 response.autocorrect_location_header = False
                 return response
+            else:
+                return make_response(jsonify({"error": "Nothing to patch."}),
+                                     status.HTTP_400_BAD_REQUEST)
         except Exception, e:
             session.rollback() # just in case
             return make_response(jsonify({"error": str(e)}),
@@ -95,14 +98,15 @@ class Guess(Resource):
     def get(self, args):
         code_id = int(args["code_id"])
         feedback_id = int(args["feedback_id"])
-
+        print "ARGS", args
         session = DbSessionHolder().get_session()
 
         try:
-                guess = get_guess(session, code_id, feedback_id, args["expand_resources"])
-                response = make_response(jsonify(guess), status.HTTP_200_OK)
+            guess = get_guess(session, code_id, feedback_id, args["expand_resources"])
+            print guess, args
+            response = make_response(jsonify(guess), status.HTTP_200_OK)
 
-                return response
+            return response
 
         except IntegrityError, e:
             session.rollback()
