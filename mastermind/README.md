@@ -1,12 +1,12 @@
 # Mastermind
 
 ## Requirements
-* Create game (given a user request)  
-* Return feedback given a code guess  -> or be able to play vs a human player
-* Check game historic (optional, actually is a role of the board not the codemaker)  
-* The code should be production ready  
+1. Create game (given a user request)  
+2. Return feedback given a code guess  -> or be able to play vs a human player
+3. Check game historic (optional, actually is a role of the board not the codemaker)  
+4. The code should be production ready  
 
-## Checking features
+## Checking required features
 A test client is included. Given that the ```mastermind``` project is already
  in your PYTHONPATH, you can start the flask-based service with:
 
@@ -21,6 +21,8 @@ python -m mastermind.show_required_features
 ```
 And check the results printed in the console.
 
+**About the 4th requirement:** The service uses an sqlite database. As it is using sqlalchemy, the db can
+be easily changed by a postgre db, for instance, without any hassle. 
 
 ## Notes and critics
 
