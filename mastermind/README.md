@@ -25,7 +25,7 @@ And check the results printed in the console.
 **About the 4th requirement:** The service uses an sqlite database. As it is using sqlalchemy, the db can
 be easily changed by a postgre db, for instance, without any hassle. 
 
-## Notes and critics
+## Notes and criticisms
 
 These are some random thoughts about the decissions taken.
 
@@ -69,6 +69,9 @@ to get the info, one should access the resource via REST.
 
 - Endpoints return raw exceptions as error messages. They should return 
 more understandable messages.
+
+- **Sometimes we do not return uris, but ids (like when we are returning the game).
+The serialization method should be changed in order to improve this.**
 
 ## Dependencies
 The project has been coded in python 2.7 and has the following dependencies:  

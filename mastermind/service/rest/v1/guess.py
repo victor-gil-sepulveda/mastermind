@@ -98,12 +98,10 @@ class Guess(Resource):
     def get(self, args):
         code_id = int(args["code_id"])
         feedback_id = int(args["feedback_id"])
-        print "ARGS", args
         session = DbSessionHolder().get_session()
 
         try:
             guess = get_guess(session, code_id, feedback_id, args["expand_resources"])
-            print guess, args
             response = make_response(jsonify(guess), status.HTTP_200_OK)
 
             return response
