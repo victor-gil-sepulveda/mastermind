@@ -102,7 +102,7 @@ def get_game_json(game, expand_resources):
         # Resources are already expanded, we have to get the uris from them
         # we use a TRIVIAL approach here TODO: do it using marshmallow!!!
         if game_json["code"] is not None:
-            code_uri = "code/" + str(game_json["code"]["id"])
+            code_uri = "/code/" + str(game_json["code"]["id"])
             game_json["code"] = code_uri
 
         guess_resources = []
@@ -129,9 +129,9 @@ def get_guess(session, code_id, feedback_id, expand_resources):
     guess_json = guess_schema.dump(guess).data
     if not expand_resources:
         # Then create the urls TODO: do it using marshmallow!!!
-        code_uri = "code/{code_id}".format(code_id=guess_json["code"]["id"])
+        code_uri = "/code/{code_id}".format(code_id=guess_json["code"]["id"])
         guess_json["code"] = code_uri
-        feedback_uri = "feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
+        feedback_uri = "/feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
         guess_json["feedback"] = feedback_uri
     return guess_json
 
@@ -144,12 +144,12 @@ def add_game_id_to_guess(session, code_id, feedback_id, game_id, expand_resource
 
     guess_json = guess_schema.dump(guess).data
     # Convert game id to uri
-    guess_json["game"] = "game/{game_id}".format(game_id=game_id)
+    guess_json["game"] = "/game/{game_id}".format(game_id=game_id)
     if not expand_resources:
         # Then create the urls TODO: do it using marshmallow!!!
-        code_uri = "code/{code_id}".format(code_id=guess_json["code"]["id"])
+        code_uri = "/code/{code_id}".format(code_id=guess_json["code"]["id"])
         guess_json["code"] = code_uri
-        feedback_uri = "feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
+        feedback_uri = "/feedback/{feedback_id}".format(feedback_id=guess_json["feedback"]["id"])
         guess_json["feedback"] = feedback_uri
     return guess_json
 

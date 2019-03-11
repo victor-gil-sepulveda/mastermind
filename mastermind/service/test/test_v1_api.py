@@ -27,7 +27,7 @@ class TestV1API(unittest.TestCase):
         DbSessionHolder(TestV1API.REST_TEST_DB).reset()
 
     def test_user_creation(self):
-        endpoint = gen_resource_url(API_PREFIX, v1, "user")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/user")
 
         # Adding a new user returns 201
         response = self.client().post(endpoint, data=json.dumps({
@@ -47,7 +47,7 @@ class TestV1API(unittest.TestCase):
         self.assertEqual(status.HTTP_409_CONFLICT, parse_status(response.status))
 
     def test_code_creation(self):
-        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/code")
 
         # Adding a new code returns 201
         response = self.client().post(endpoint, data=json.dumps({
@@ -61,7 +61,7 @@ class TestV1API(unittest.TestCase):
 
     def test_feedback_creation(self):
         # repeated code ahead
-        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/feedback")
 
         # Adding a new code returns 201
         response = self.client().post(endpoint, data=json.dumps({
@@ -75,17 +75,17 @@ class TestV1API(unittest.TestCase):
 
     def test_guess_creation(self):
         # repeated code ahead
-        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/code")
         code_response = self.client().post(endpoint, data=json.dumps({
             "colors": "____"
         }))
 
-        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/feedback")
         fb_response = self.client().post(endpoint, data=json.dumps({
             "colors": "XXXX"
         }))
 
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess")
         response = self.client().post(endpoint, data=json.dumps({
             "code_uri": code_response.location,
             "feedback_uri": fb_response.location
@@ -103,7 +103,7 @@ class TestV1API(unittest.TestCase):
         self.assertDictEqual(expected, json.loads(response.data))
 
     def test_guess_auto_creation(self):
-        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/code")
         game_code_response = self.client().post(endpoint, data=json.dumps({
             "colors": "1234"
         }))
@@ -111,7 +111,7 @@ class TestV1API(unittest.TestCase):
             "colors": "4___"
         }))
 
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess")
         response = self.client().post(endpoint, data=json.dumps({
             "code_uri": code_response.location,
             "game_code_uri": game_code_response.location
@@ -119,13 +119,13 @@ class TestV1API(unittest.TestCase):
 
         # Get the colors of the feedback
         feedback_id = json.loads(response.data)["id"]["feedback_id"]
-        endpoint = gen_resource_url(API_PREFIX, v1, "feedback/{feedback_id}".format(feedback_id=feedback_id))
+        endpoint = gen_resource_url(API_PREFIX, v1, "/feedback/{feedback_id}".format(feedback_id=feedback_id))
         response = self.client().get(endpoint)
         self.assertEqual("1___", json.loads(response.data)["colors"])
 
     def create_a_game(self):
         # Create the players
-        endpoint = gen_resource_url(API_PREFIX, v1, "user")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/user")
         susan_response = self.client().post(endpoint, data=json.dumps({
             "name": "susan",
             "pass_hash": "111111"
@@ -136,7 +136,7 @@ class TestV1API(unittest.TestCase):
         }))
 
         # Create the game with default max_moves
-        endpoint = gen_resource_url(API_PREFIX, v1, "game")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/game")
         response = self.client().post(endpoint, data=json.dumps({
             "codemaker_uri": susan_response.location,
             "codebreaker_uri": john_response.location
@@ -157,7 +157,7 @@ class TestV1API(unittest.TestCase):
         self.assertDictEqual(expected, json.loads(response.data))
 
         # Defining max_moves ...
-        endpoint = gen_resource_url(API_PREFIX, v1, "game")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/game")
         response = self.client().post(endpoint, data=json.dumps({
             "codemaker_uri": susan_response.location,
             "codebreaker_uri": john_response.location,
@@ -176,32 +176,32 @@ class TestV1API(unittest.TestCase):
     def test_patch_game_code(self):
         susan_response, john_response, game_response = self.create_a_game()
 
-        code_endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        code_endpoint = gen_resource_url(API_PREFIX, v1, "/code")
         code_response = self.client().post(code_endpoint, data=json.dumps({
             "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
         }))
-        game_endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:])
+        game_endpoint = gen_resource_url(API_PREFIX, v1, game_response.location)
         new_game_response = self.client().patch(game_endpoint, data=json.dumps({
             "game_code_uri": code_response.location
         }))
-        self.assertEqual('code/1', json.loads(new_game_response.data)["code"])
+        self.assertEqual('/code/1', json.loads(new_game_response.data)["code"])
 
     def create_random_guess(self):
         # repeated code ahead
         # Create the code
-        endpoint = gen_resource_url(API_PREFIX, v1, "code")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/code")
         code_response = self.client().post(endpoint, data=json.dumps({
             "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
         }))
 
         # Create the feedback
-        endpoint = gen_resource_url(API_PREFIX, v1, "feedback")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/feedback")
         fb_response = self.client().post(endpoint, data=json.dumps({
             "colors": ''.join(random.choice(string.lowercase) for _ in range(4))
         }))
 
         # And now create the guess!
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess")
         self.client().post(endpoint, data=json.dumps({
             "code_uri": code_response.location,
             "feedback_uri": fb_response.location
@@ -211,15 +211,15 @@ class TestV1API(unittest.TestCase):
 
     def test_get_guess(self):
         code_id, feedback_id = self.create_random_guess()
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
             code_id=code_id,
             feedback_id=feedback_id
         ))
 
         response = self.client().get(endpoint)
         expected = {
-            "code": "code/1",
-            "feedback": "feedback/1",
+            "code": "/code/1",
+            "feedback": "/feedback/1",
             "game": None
         }
         self.assertDictEqual(expected, json.loads(response.data))
@@ -228,7 +228,7 @@ class TestV1API(unittest.TestCase):
         susan_response, john_response, game_response = self.create_a_game()
         game_id = json.loads(game_response.data)["id"]
         code_id, feedback_id = self.create_random_guess()
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess?code_id={code_id}&feedback_id={feedback_id}&expand_resources=false".format(
             code_id=code_id,
             feedback_id=feedback_id
         ))
@@ -236,13 +236,13 @@ class TestV1API(unittest.TestCase):
             "game_id": game_id
         }))
         self.assertTrue("game" in json.loads(response.data))
-        self.assertEqual("game/1", json.loads(response.data)["game"])
+        self.assertEqual("/game/1", json.loads(response.data)["game"])
 
     def add_random_guess_to_game(self, game_id):
         code_id, feedback_id = self.create_random_guess()
 
         # Finally add the guess to the game
-        endpoint = gen_resource_url(API_PREFIX, v1, "guess?code_id={code_id}&feedback_id={feedback_id}".format(
+        endpoint = gen_resource_url(API_PREFIX, v1, "/guess?code_id={code_id}&feedback_id={feedback_id}".format(
             code_id=code_id,
             feedback_id=feedback_id
         ))
@@ -252,7 +252,9 @@ class TestV1API(unittest.TestCase):
 
     def test_get_game(self):
         susan_response, john_response, game_response = self.create_a_game()
-        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:]) # remove the first "/" from location
+        print "gamerespo" , game_response.location
+        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location)
+        print endpoint
         response = self.client().get(endpoint)
         expected = {
             "code": None,
@@ -263,19 +265,20 @@ class TestV1API(unittest.TestCase):
             "max_moves": 8
         }
         json_response = json.loads(response.data)
+        print json_response
         game_id = json.loads(response.data)["id"]
         del json_response["created"] # The creation date will be always different to the golden data one
         self.assertDictEqual(expected, json_response)
 
         # If the game does not exist we get an error
-        endpoint = gen_resource_url(API_PREFIX, v1, "game/-1")
+        endpoint = gen_resource_url(API_PREFIX, v1, "/game/-1")
         response = self.client().get(endpoint)
         self.assertEqual(status.HTTP_404_NOT_FOUND, parse_status(response.status))
 
         # If the game has some guesses and code, we also get them
         for _ in range(5):
             self.add_random_guess_to_game(game_id)
-        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location[1:])  # remove the first "/" from location
+        endpoint = gen_resource_url(API_PREFIX, v1, game_response.location)  # remove the first "/" from location
         response = self.client().get(endpoint)
         expected = {
             "id": 1,

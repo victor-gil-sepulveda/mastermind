@@ -17,6 +17,7 @@ It will be listening at ```localhost:5000```.
 
 Then you can run the client with:
 ```bash
+rm mastermind_local.db
 python -m mastermind.show_required_features
 ```
 And check the results printed in the console.
